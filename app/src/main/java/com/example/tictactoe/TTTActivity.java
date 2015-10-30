@@ -6,6 +6,8 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -16,16 +18,21 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class TTTActivity extends ActionBarActivity {
+    String name;
+    String group = "";
+    String symbol;
+    String opponent_symbol;
 
     // TAG for logging
     private static final String TAG = "TTTActivity";
 
     // server to connect to
     protected static final int GROUPCAST_PORT = 20000;
-    protected static final String GROUPCAST_SERVER = "cs283.hopto.org";
+    protected static final String GROUPCAST_SERVER = "52.89.44.173";
 
     // networking
     Socket socket = null;
@@ -35,6 +42,7 @@ public class TTTActivity extends ActionBarActivity {
 
     // UI elements
     Button board[][] = new Button[3][3];
+    TextView GameStatus = null;
     Button bConnect = null;
     EditText etName = null;
 
@@ -56,6 +64,7 @@ public class TTTActivity extends ActionBarActivity {
         board[2][0] = (Button) this.findViewById(R.id.b20);
         board[2][1] = (Button) this.findViewById(R.id.b21);
         board[2][2] = (Button) this.findViewById(R.id.b22);
+        GameStatus = (TextView) this.findViewById(R.id.GameStatus);
 
         // hide login controls
         hideLoginControls();
@@ -71,7 +80,7 @@ public class TTTActivity extends ActionBarActivity {
 
             @Override
             public void onClick(View v) {
-                String name = etName.getText().toString();
+                name = etName.getText().toString();
                 // sanitity check: make sure that the name does not start with an @ character
                 if (name == null || name.startsWith("@")) {
                     Toast.makeText(getApplicationContext(), "Invalid name",
@@ -89,22 +98,98 @@ public class TTTActivity extends ActionBarActivity {
             @Override
             public void onClick(View v) {
                 int x, y;
+                disableBoardClick();
                 switch (v.getId()) {
                     case R.id.b00:
                         x = 0;
                         y = 0;
-
-                        // TODO: what do we do if the user clicked field (0,0)?
+                        //send the coordinates to server
+                        send("MSG," + group + ",Move*0,0");
+                        //disable button b00
+                        board[x][y].setEnabled(false);
+                        //draw an x or o on the button
+                        board[x][y].setText(symbol);
                         break;
                     case R.id.b01:
                         x = 0;
                         y = 1;
-
-                        // TODO: what do we do if the user clicked field (0,1)?
+                        //send the coordinates to server
+                        send("MSG," + group + ",Move*0,1");
+                        //disable button b00
+                        board[x][y].setEnabled(false);
+                        //draw an x or o on the button
+                        board[x][y].setText(symbol);
                         break;
-
-                    // [ ... and so on for the other buttons ]
-
+                    case R.id.b02:
+                        x = 0;
+                        y = 2;
+                        //send the coordinates to server
+                        send("MSG," + group + ",Move*0,2");
+                        //disable button b00
+                        board[x][y].setEnabled(false);
+                        //draw an x or o on the button
+                        board[x][y].setText(symbol);
+                        break;
+                    case R.id.b10:
+                        x = 1;
+                        y = 0;
+                        //send the coordinates to server
+                        send("MSG," + group + ",Move*1,0");
+                        //disable button b00
+                        board[x][y].setEnabled(false);
+                        //draw an x or o on the button
+                        board[x][y].setText(symbol);
+                        break;
+                    case R.id.b11:
+                        x = 1;
+                        y = 1;
+                        //send the coordinates to server
+                        send("MSG," + group + ",Move*1,1");
+                        //disable button b00
+                        board[x][y].setEnabled(false);
+                        //draw an x or o on the button
+                        board[x][y].setText(symbol);
+                        break;
+                    case R.id.b12:
+                        x = 1;
+                        y = 2;
+                        //send the coordinates to server
+                        send("MSG," + group + ",Move*1,2");
+                        //disable button b00
+                        board[x][y].setEnabled(false);
+                        //draw an x or o on the button
+                        board[x][y].setText(symbol);
+                        break;
+                    case R.id.b20:
+                        x = 2;
+                        y = 0;
+                        //send the coordinates to server
+                        send("MSG," + group + ",Move*2,0");
+                        //disable button b00
+                        board[x][y].setEnabled(false);
+                        //draw an x or o on the button
+                        board[x][y].setText(symbol);
+                        break;
+                    case R.id.b21:
+                        x = 2;
+                        y = 1;
+                        //send the coordinates to server
+                        send("MSG," + group + ",Move*2,1");
+                        //disable button b00
+                        board[x][y].setEnabled(false);
+                        //draw an x or o on the button
+                        board[x][y].setText(symbol);
+                        break;
+                    case R.id.b22:
+                        x = 2;
+                        y = 2;
+                        //send the coordinates to server
+                        send("MSG," + group + ",Move*2,2");
+                        //disable button b00
+                        board[x][y].setEnabled(false);
+                        //draw an x or o on the button
+                        board[x][y].setText(symbol);
+                        break;
                     default:
                         break;
                 }
@@ -123,6 +208,25 @@ public class TTTActivity extends ActionBarActivity {
 
     }
 
+    String checkWin(){
+        for(int i=0;i<=2;i++) {
+            if (board[i][0].getText() == board[i][1].getText() && board[i][1].getText() == board[i][2].getText()){
+                return board[i][0].getText().toString();
+            }
+        }
+        for(int i=0;i<=2;i++) {
+            if (board[0][i].getText() == board[1][i].getText() && board[1][i].getText() == board[2][i].getText()){
+                return board[0][i].getText().toString();
+            }
+        }
+        if (board[0][0].getText() == board[1][1].getText() && board[1][1].getText() == board[2][2].getText()){
+            return board[0][0].getText().toString();
+        }
+        if (board[2][0].getText() == board[1][1].getText() && board[1][1].getText() == board[0][2].getText()){
+            return board[0][0].getText().toString();
+        }
+        return "No Winner Yet";
+    }
 
     @Override
     protected void onDestroy() {
@@ -267,19 +371,124 @@ public class TTTActivity extends ActionBarActivity {
                 // the message received from the server is
                 // guaranteed to be not null
                 String msg = lines[0];
-
-                // TODO: act on messages received from the server
-                if(msg.startsWith("+OK,NAME")) {
+                Log.i("ServerReply",msg);//print out server reply msg on console for debugging use
+                Pattern p = Pattern.compile("OK,NAME");
+                Matcher m = p.matcher(msg);
+                if(m.find()){
+                    //send query for list of groups
                     hideLoginControls();
                     showBoard();
+                    GameStatus.setText("Waiting for Opponent...");
+                    send("LIST,GROUPS");
+                    return;
+                }
+                //receive a list of available groups
+                p = Pattern.compile("OK,LIST,GROUPS");
+                m = p.matcher(msg);
+                if(m.find()){
+                    String delims = "[:]+";
+                    String[] tokens = msg.split(delims);
+                    String group_to_join="";
+                    if(tokens.length == 2) {
+                        String groups = tokens[1];
+                        delims = "[,]+";
+                        tokens = groups.split(delims);
+                        for (int i = 0; i < tokens.length; i++) {
+                            p = Pattern.compile("1/2");
+                            m = p.matcher(tokens[i]);
+                            if (m.find()) { //if there is a group with an available spot
+                                group_to_join = tokens[i];
+                                delims = "[(]+";
+                                String[] temp = group_to_join.split(delims);
+                                group_to_join = temp[0];
+                                group_to_join = group_to_join.replace("[", "");//extract the group name from the msg
+                                Log.i("Group Name:", group_to_join);
+                                break;//no need to continue searching
+                            }
+                        }
+                    }
+                    if(!group_to_join.equals("")){//if there is an available group
+                        send("JOIN,"+group_to_join);
+                        group = group_to_join;
+                    }
+                    else{
+                        Log.i("XX",name);
+                        send("JOIN,@"+name+",2");//use the unique username as the group name to avoid duplication
+                        group = name;
+                    }
+                    return;
+                }
+                p = Pattern.compile("OK,JOIN");
+                m = p.matcher(msg);
+                Pattern q = Pattern.compile("2/2");
+                Matcher n = q.matcher(msg);
+                if(m.find() && n.find()){ //if the game is ready to start
+                    send("MSG,"+group+",Start Game!");
+                    GameStatus.setText("Game Started!");
+                    symbol = "X";
+                    opponent_symbol = "O";
                     return;
                 }
 
+                //if the another player just joined the group and the group is now full
+                //start the game
+                p = Pattern.compile("Start Game!");
+                m = p.matcher(msg);
+                q = Pattern.compile("OK");
+                n = q.matcher(msg);
+                if(m.find() && !n.find()){
+                    enableBoardClick();
+                    GameStatus.setText("Game Started!");
+                    symbol = "O";
+                    opponent_symbol = "X";
+                    return;
+                }
+
+                //if placing pieces
+                //draw x or o on the corresponding button
+                //disable the button
+                //enable the rest of the buttons
+                p = Pattern.compile("Move");
+                m = p.matcher(msg);
+                q = Pattern.compile("OK");
+                n = q.matcher(msg);
+                if(m.find() && !n.find()){ //if client receives a message containing a movement action of the opponent
+                    String delims = "[*]+";
+                    String[] tokens = msg.split(delims);
+                    String coordinate = tokens[1];
+                    delims = "[,]+";
+                    tokens = coordinate.split(delims);
+                    int x = Integer.parseInt(tokens[0]);
+                    int y = Integer.parseInt(tokens[1]);
+                    //draw the opponent's symbol on the corresponding button
+                    board[x][y].setText(opponent_symbol);
+                    //disable the button
+                    board[x][y].setEnabled(false);
+                    enableBoardClick();
+                    String winner_symbol = checkWin();
+                    if(winner_symbol.equals(opponent_symbol)){ //if the opponent has won the game
+                        send("MSG," + group + ",You Won!");
+                        disableBoardClick();
+                        GameStatus.setText("You Lost!");
+                    }
+                    return;
+                }
+
+                p = Pattern.compile("You Win!");
+                m = p.matcher(msg);
+                q = Pattern.compile("OK");
+                n = q.matcher(msg);
+                if(m.find() && !n.find()) {
+                    disableBoardClick();
+                    GameStatus.setText("You Won!");
+                }
                 if(msg.startsWith("+ERROR,NAME")) {
                     Toast.makeText(getApplicationContext(), msg.substring("+ERROR,NAME,".length()), Toast.LENGTH_SHORT).show();
                     return;
                 }
-
+                if(msg.startsWith("+OK")) { //Handle all other acknowledgements from the server
+                    return;
+                }
                 // [ ... and so on for other kinds of messages]
 
 

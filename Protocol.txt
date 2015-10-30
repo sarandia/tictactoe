@@ -1,0 +1,10 @@
+The communication protocol of my Tic-Tac-Toe game is:
+1. In this description of the protocol, Player1 is defined as the player who joins the group first; Player2 is defined as the player who joins the group later.
+2. When Player2 joins an existing group and the group becomes full (2/2, this should be done automatically), Player2's client sends "MSG,@group_name,Start Game!" to Player1.
+3. Player1 receives "Start Game" and makes the first placement. The player who places his piece first is assigned with "X" and the other gets assigned "O".
+4. Each time a player makes a placement, his client sends out "MSG,@group_name,Move*(x,y)" where x and y represent the coordinate of the placement. Right after the message is sent,
+   the board of the player sending the message is updated accordingly and is disabled to wait for the other player.
+5. When the other player receives a message containing the coordinate the opponent just placed his piece, his board is updated and activated for his action. After he makes the placement,
+   his board is disabled. Every time a player receives a new placement from the opponent, a check is performed to determine if the opponent has won the game.
+6. If the check confirms that the opponent has won, the client will display "You Lost" and send a message "MSG,@group_name,You Won!" to the opponent. The board will be disabled.
+7. When received "You Won!", the board will be disabled and the text "You Won" will be displayed.
