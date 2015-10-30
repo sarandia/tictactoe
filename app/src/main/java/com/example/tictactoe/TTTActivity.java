@@ -223,7 +223,7 @@ public class TTTActivity extends ActionBarActivity {
             return board[0][0].getText().toString();
         }
         if (board[2][0].getText() == board[1][1].getText() && board[1][1].getText() == board[0][2].getText()){
-            return board[0][0].getText().toString();
+            return board[2][0].getText().toString();
         }
         return "No Winner Yet";
     }
