@@ -414,7 +414,7 @@ public class TTTActivity extends ActionBarActivity {
                     else{
                         Log.i("XX",name);
                         send("JOIN,@"+name+",2");//use the unique username as the group name to avoid duplication
-                        group = name;
+                        group = "@"+name;
                     }
                     return;
                 }
@@ -474,13 +474,14 @@ public class TTTActivity extends ActionBarActivity {
                     return;
                 }
 
-                p = Pattern.compile("You Win!");
+                p = Pattern.compile("You Won!");
                 m = p.matcher(msg);
                 q = Pattern.compile("OK");
                 n = q.matcher(msg);
                 if(m.find() && !n.find()) {
                     disableBoardClick();
                     GameStatus.setText("You Won!");
+                    return;
                 }
                 if(msg.startsWith("+ERROR,NAME")) {
                     Toast.makeText(getApplicationContext(), msg.substring("+ERROR,NAME,".length()), Toast.LENGTH_SHORT).show();
